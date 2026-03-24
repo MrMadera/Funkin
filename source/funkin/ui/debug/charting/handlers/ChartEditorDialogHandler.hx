@@ -23,7 +23,6 @@ import funkin.ui.debug.charting.dialogs.ChartEditorWelcomeDialog;
 import funkin.ui.debug.charting.dialogs.ChartEditorUploadVocalsDialog;
 import funkin.ui.debug.charting.util.ChartEditorDropdowns;
 import funkin.util.Constants;
-import funkin.util.DateUtil;
 import funkin.util.FileUtil;
 import funkin.util.VersionUtil;
 import haxe.io.Path;
@@ -126,8 +125,6 @@ class ChartEditorDialogHandler
   public static function openUploadVocalsDialog(state:ChartEditorState, closable:Bool = true):Dialog
   {
     var charData:SongCharacterData = state.currentSongMetadata.playData.characters;
-
-    var hasClearedVocals:Bool = false;
 
     var charIdsForVocals:Array<String> = [charData.player, charData.opponent];
 
@@ -532,7 +529,7 @@ class ChartEditorDialogHandler
 
     instrumentalBox.onClick = function(_)
     {
-      Dialogs.openBinaryFile('Open Instrumental', [{label: 'Audio File (.ogg)', extension: 'ogg'}], function(selectedFile:SelectedFileInfo)
+      FileUtil.browseForFile('Open Instrumental', [FileUtil.FILE_FILTER_OGG], function(selectedFile:SelectedFileData)
       {
         if (selectedFile != null && selectedFile.bytes != null)
         {
@@ -694,6 +691,24 @@ class ChartEditorDialogHandler
     };
     var startingValueNoteStyle = ChartEditorDropdowns.populateDropdownWithNoteStyles(inputNoteStyle, newSongMetadata.playData.noteStyle);
     inputNoteStyle.value = startingValueNoteStyle;
+
+    var inputAlbum:Null<DropDown> = dialog.findComponent('inputAlbum', DropDown);
+    if (inputAlbum == null) throw 'Could not locate inputAlbum DropDown in Song Metadata dialog';
+    inputAlbum.onChange = (event:UIEvent) -> {
+      if (event.data?.id == null) return;
+      newSongMetadata.playData.album = event.data.id;
+    };
+    var startingValueAlbum = ChartEditorDropdowns.populateDropdownWithAlbums(inputAlbum, newSongMetadata.playData.album);
+    inputAlbum.value = startingValueAlbum;
+
+    var inputStickerPack:Null<DropDown> = dialog.findComponent('inputStickerPack', DropDown);
+    if (inputStickerPack == null) throw 'Could not locate inputStickerPack DropDown in Song Metadata dialog';
+    inputStickerPack.onChange = (event:UIEvent) -> {
+      if (event.data?.id == null) return;
+      newSongMetadata.playData.stickerPack = event.data.id;
+    };
+    var startingValueStickerPack = ChartEditorDropdowns.populateDropdownWithStickerPacks(inputStickerPack, newSongMetadata.playData.stickerPack);
+    inputStickerPack.value = startingValueStickerPack;
 
     var inputCharacterPlayer:Null<DropDown> = dialog.findComponent('inputCharacterPlayer', DropDown);
     if (inputCharacterPlayer == null) throw 'ChartEditorToolboxHandler.buildToolboxMetadataLayout() - Could not find inputCharacterPlayer component.';
@@ -944,7 +959,7 @@ class ChartEditorDialogHandler
 
     onClickMetadataVariation = function(variation:String, label:Label, _:UIEvent)
     {
-      Dialogs.openBinaryFile('Open Chart ($variation) Metadata', [{label: 'JSON File (.json)', extension: 'json'}], function(selectedFile)
+      FileUtil.browseForFile('Open Chart ($variation) Metadata', [FileUtil.FILE_FILTER_JSON], function(selectedFile)
       {
         if (selectedFile != null && selectedFile.bytes != null)
         {
@@ -1030,7 +1045,7 @@ class ChartEditorDialogHandler
 
     onClickChartDataVariation = function(variation:String, label:Label, _:UIEvent)
     {
-      Dialogs.openBinaryFile('Open Chart ($variation) Metadata', [{label: 'JSON File (.json)', extension: 'json'}], function(selectedFile)
+      FileUtil.browseForFile('Open Chart ($variation) Metadata', [FileUtil.FILE_FILTER_JSON], function(selectedFile)
       {
         if (selectedFile != null && selectedFile.bytes != null)
         {
@@ -1120,11 +1135,11 @@ class ChartEditorDialogHandler
     var fileFilter = switch (format)
     {
       case 'legacy':
-        [{label: 'JSON Data File (.json)', extension: 'json'}];
+        [FileUtil.FILE_FILTER_JSON];
       case 'stepmania':
-        [{label: 'StepMania File (.sm)', extension: 'sm'}];
+        [FileUtil.FILE_FILTER_SM];
       case 'osumania':
-        [{label: 'OSU! Beatmap File (.osu)', extension: 'osu'}];
+        [FileUtil.FILE_FILTER_OSU];
       default: null;
     }
 
@@ -1136,18 +1151,6 @@ class ChartEditorDialogHandler
         "sm";
       default: "json";
     }
-
-    var fileFilterLabel:String = switch (fileExt)
-    {
-      case 'json':
-        'JSON Data File';
-      case 'sm':
-        'StepMania File';
-      case 'osu':
-        'osu! Beatmap File';
-      default: "Unknown File Type";
-    };
-    fileFilterLabel += ' (.$fileExt)';
 
     dialog.title = 'Import Chart - ${prettyFormat}';
 
@@ -1268,7 +1271,7 @@ class ChartEditorDialogHandler
     importBox.onClick = function(_)
     {
       // TODO / BUG: File filtering not working on mac finder dialog, so we don't use it for now
-      Dialogs.openBinaryFile('Import Chart - ${prettyFormat}', fileFilter ?? [], function(selectedFile:SelectedFileInfo)
+      FileUtil.browseForFile('Import Chart - ${prettyFormat}', fileFilter ?? [], function(selectedFile:SelectedFileData)
       {
         if (selectedFile != null && selectedFile.bytes != null)
         {
@@ -1351,6 +1354,16 @@ class ChartEditorDialogHandler
     var startingValueNoteStyle = ChartEditorDropdowns.populateDropdownWithNoteStyles(dialogNoteStyle, state.currentSongMetadata.playData.noteStyle);
     dialogNoteStyle.value = startingValueNoteStyle;
 
+    var dialogAlbum:Null<DropDown> = dialog.findComponent('dialogAlbum', DropDown);
+    if (dialogAlbum == null) throw 'Could not locate dialogAlbum DropDown in Add Variation dialog';
+    var startingValueAlbum = ChartEditorDropdowns.populateDropdownWithAlbums(dialogAlbum, state.currentSongMetadata.playData.album);
+    dialogAlbum.value = startingValueAlbum;
+
+    var dialogStickerPack:Null<DropDown> = dialog.findComponent('dialogStickerPack', DropDown);
+    if (dialogStickerPack == null) throw 'Could not locate dialogStickerPack DropDown in Add Variation dialog';
+    var startingValueStickerPack = ChartEditorDropdowns.populateDropdownWithStickerPacks(dialogStickerPack, state.currentSongMetadata.playData.stickerPack);
+    dialogAlbum.value = startingValueStickerPack;
+
     var dialogCharacterPlayer:Null<DropDown> = dialog.findComponent('dialogCharacterPlayer', DropDown);
     if (dialogCharacterPlayer == null) throw 'Could not locate dialogCharacterPlayer DropDown in Add Variation dialog';
     dialogCharacterPlayer.value = ChartEditorDropdowns.populateDropdownWithCharacters(dialogCharacterPlayer, CharacterType.BF,
@@ -1387,6 +1400,8 @@ class ChartEditorDialogHandler
 
       pendingVariation.playData.stage = dialogStage.value.id;
       pendingVariation.playData.noteStyle = dialogNoteStyle.value.id;
+      pendingVariation.playData.album = dialogAlbum.value.id;
+      pendingVariation.playData.stickerPack = dialogStickerPack.value.id;
       pendingVariation.timeChanges[0].bpm = dialogBPM.value;
 
       state.songMetadata.set(pendingVariation.variation, pendingVariation);

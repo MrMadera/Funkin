@@ -803,7 +803,6 @@ class PauseSubState extends MusicBeatSubState
     // If targetMode is null, keep the current mode.
     if (targetMode == null) targetMode = this.currentMode;
 
-    var previousMode:PauseMode = this.currentMode;
     this.currentMode = targetMode;
 
     resetSelection();
@@ -906,7 +905,7 @@ class PauseSubState extends MusicBeatSubState
         var text:AtlasText = new AtlasText(0, yPos, entry.text, AtlasFont.BOLD);
         text.scrollFactor.set(0, 0);
         text.alpha = 0;
-        for (letter in text)
+        for (letter in text.children)
         {
           letter.width *= 2;
           letter.height *= 2;

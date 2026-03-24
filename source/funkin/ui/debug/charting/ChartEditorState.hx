@@ -606,11 +606,6 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
   var playtestAudioSettings:Bool = false;
 
   /**
-   * Enables or disables the "debugger" popup that appears when you run into a flixel error.
-   */
-  var enabledDebuggerPopup:Bool = true;
-
-  /**
    * Whether song scripts should be enabled during playtesting.
    * You should probably check the box if the song has custom mechanics.
    */
@@ -1128,12 +1123,6 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
   var difficultySelectDirty:Bool = true;
 
   /**
-   * Whether the character select view in the toolbox has been modified and needs to be updated.
-   * This happens when we add/remove characters.
-   */
-  var characterSelectDirty:Bool = true;
-
-  /**
    * Whether the player preview toolbox have been modified and need to be updated.
    * This happens when we switch characters.
    */
@@ -1581,6 +1570,44 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
   function set_currentSongNoteStyle(value:String):String
   {
     return currentSongMetadata.playData.noteStyle = value;
+  }
+
+  var currentSongAlbum(get, set):Null<String>;
+
+  function get_currentSongAlbum():Null<String>
+  {
+    if (currentSongMetadata.playData.album == null
+    || currentSongMetadata.playData.album == ''
+    || currentSongMetadata.playData.album == 'item')
+    {
+      // Initialize to the default value if not set.
+      currentSongMetadata.playData.album = Constants.DEFAULT_ALBUM_ID;
+    }
+    return currentSongMetadata.playData.album;
+  }
+
+  function set_currentSongAlbum(value:String):Null<String>
+  {
+    return currentSongMetadata.playData.album = value;
+  }
+
+  var currentSongStickerPack(get, set):Null<String>;
+
+  function get_currentSongStickerPack():Null<String>
+  {
+    if (currentSongMetadata.playData.stickerPack == null
+    || currentSongMetadata.playData.stickerPack == ''
+    || currentSongMetadata.playData.stickerPack == 'item')
+    {
+      // Initialize to the default value if not set.
+      currentSongMetadata.playData.stickerPack = Constants.DEFAULT_STICKER_PACK;
+    }
+    return currentSongMetadata.playData.stickerPack;
+  }
+
+  function set_currentSongStickerPack(value:String):Null<String>
+  {
+    return currentSongMetadata.playData.stickerPack = value;
   }
 
   var currentSongFreeplayPreviewStart(get, set):Float;
@@ -2203,25 +2230,9 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
   var buttonSelectEvent:Button;
 
   /**
-   * The slider above the grid that sets the volume of the player's sounds.
-   * Constructed manually and added to the layout so we can control its position.
-   */
-  var sliderVolumePlayer:Slider;
-
-  /**
-   * The slider above the grid that sets the volume of the opponent's sounds.
-   * Constructed manually and added to the layout so we can control its position.
-   */
-  var sliderVolumeOpponent:Slider;
-
-  /**
    * RENDER OBJECTS
    */
   // ==============================
-
-  /**
-   * The group containing the visulizers! */
-  var visulizerGrps:FlxTypedGroup<PolygonSpectogram> = null;
 
   /**
    * The IMAGE used for the grid. Updated by ChartEditorThemeHandler.
@@ -2740,8 +2751,6 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     menuBG.scrollFactor.set(0, 0);
     menuBG.zIndex = -100;
   }
-
-  var oppSpectogram:PolygonSpectogram;
 
   /**
    * Builds and displays the chart editor grid, including the playhead and cursor.
